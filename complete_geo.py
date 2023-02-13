@@ -84,7 +84,7 @@ class Complete_geo(Method):
                         weight = temp_0_new[w_i]
                         values, indexes, profits = nopy.get_value_index_profit(weight, self.PROFIT, self.INDEX)
                         
-                        for c_i in range(self.test_start, self.INDEX.shape[0]-2):
+                        for c_i in range(self.test_start, self.INDEX.shape[0]-1):
                             value = values[0:c_i]
                             index = indexes[0:c_i]
                             profit = profits[0:c_i]
@@ -96,7 +96,7 @@ class Complete_geo(Method):
                                 bit = nopy.get_bit_mean(temp_weight, temp_profit)
                                 temp_formula = formula.copy()
                                 temp_formula[idx] = valid_operand[w_i]
-                                self.list_formula.append(self.convert_formula_to_str(temp_formula))
+                                self.list_formula.append(temp_formula)
                                 self.list_geo.append(geo)
                                 self.list_geo_L.append(geo_L)
                                 self.list_value_geo_L.append(value_geo_L)
@@ -146,7 +146,7 @@ class Complete_geo(Method):
             if start == 0:
                 start = 2
 
-            valid_op = nopy.get_valid_op(formula, struct, idx, start)
+            valid_op = nopy.get_valid_op(struct, idx, start)
             for op in valid_op:
                 new_formula = formula.copy()
                 new_struct = struct.copy()
@@ -236,14 +236,14 @@ class Complete_geo(Method):
         min_time = self.TRAINING_DATA["TIME"].min()
         df = pd.DataFrame({
             "formula": self.list_formula,
-            "geo": self.list_geo,
+            "geomean": self.list_geo,
             "geo_limit": self.list_geo_L,
             "value_geo_limit": self.list_value_geo_L,
-            "har": self.list_har,
+            "harmean": self.list_har,
             "har_limit": self.list_har_L,
             "value_har_limit": self.list_value_har_L,
             "value": self.list_value,
-            "bit": self.list_bit,
+            "bitmean": self.list_bit,
             "invest": [self.TRAINING_DATA["SYMBOL"].iloc[i] for i in self.list_invest_index],
             "profit": self.list_invest_profit,
             "cycle": [min_time + i for i in self.list_cycle]

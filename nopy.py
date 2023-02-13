@@ -70,7 +70,7 @@ def get_valid_operand(formula, struct, idx, start, num_operand):
 
 
 @njit()
-def get_valid_op(formula, struct, idx, start):
+def get_valid_op(struct, idx, start):
     valid_op = np.full(2, 0)
     valid_op[start-2:] = 1
 
