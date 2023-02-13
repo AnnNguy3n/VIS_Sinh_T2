@@ -138,7 +138,7 @@ def har_har_L_value_har_L(value, index, profit, target):
     temp = 0.0
     for p in profit:
         if p <= 0.0:
-            har = 0.0
+            temp = 1.7976931348623157e+308
             break
 
         temp += 1.0/p
