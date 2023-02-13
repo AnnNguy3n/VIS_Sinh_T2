@@ -251,7 +251,7 @@ class Complete_geo(Method):
         while True:
             pathSave = self.path + f"formula_" + datetime.now().strftime("%d_%m_%Y_%H_%M_%S") + ".csv"
             if not os.path.exists(pathSave):
-                df.to_csv(pathSave)
+                df.to_csv(pathSave, index=False)
                 self.count[0] = 0
                 print("Đã lưu công thức")
                 if self.count[2] >= self.count[3]:
