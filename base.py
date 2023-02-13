@@ -60,3 +60,15 @@ class Method:
                     if time_arr[j] != temp:
                         self.INDEX[i+1] = j
                         break
+
+    
+    def convert_formula_to_str(self, formula):
+        temp = "+-*/"
+        str_formula = ""
+        for i in range(formula.shape[0]):
+            if i % 2 == 1:
+                str_formula += str(formula[i])
+            else:
+                str_formula += temp[formula[i]]
+
+        return str_formula

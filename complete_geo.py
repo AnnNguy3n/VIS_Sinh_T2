@@ -96,7 +96,7 @@ class Complete_geo(Method):
                                 bit = nopy.get_bit_mean(temp_weight, temp_profit)
                                 temp_formula = formula.copy()
                                 temp_formula[idx] = valid_operand[w_i]
-                                self.list_formula.append(temp_formula)
+                                self.list_formula.append(self.convert_formula_to_str(temp_formula))
                                 self.list_geo.append(geo)
                                 self.list_geo_L.append(geo_L)
                                 self.list_value_geo_L.append(value_geo_L)
