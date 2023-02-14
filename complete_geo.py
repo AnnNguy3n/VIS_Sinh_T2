@@ -253,6 +253,18 @@ class Complete_geo(Method):
             if not os.path.exists(pathSave):
                 df.to_csv(pathSave, index=False)
                 self.count[0] = 0
+                self.list_formula = []
+                self.list_geo = []
+                self.list_geo_L = []
+                self.list_value_geo_L = []
+                self.list_har = []
+                self.list_har_L = []
+                self.list_value_har_L = []
+                self.list_value = []
+                self.list_bit = []
+                self.list_invest_index = []
+                self.list_invest_profit = []
+                self.list_cycle = []
                 print("Đã lưu công thức")
                 if self.count[2] >= self.count[3]:
                     raise Exception("Đã sinh đủ công thức theo yêu cầu.")
