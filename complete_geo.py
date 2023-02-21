@@ -4,6 +4,10 @@ import numpy as np
 import os
 from datetime import datetime
 import nopy
+from numpy import VisibleDeprecationWarning
+import warnings
+warnings.filterwarnings(action="ignore", category=VisibleDeprecationWarning)
+warnings.filterwarnings(action="ignore", category=RuntimeWarning)
 
 
 class Complete_geo(Method):

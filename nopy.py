@@ -120,7 +120,7 @@ def geo_geo_L_value_geo_L(value, index, profit, target):
     for x in temp_value:
         temp_profit = 1.0
         for i in range(temp_value.shape[0]):
-            if value[i] > x:
+            if temp_value[i] > x:
                 temp_profit *= profit[i]
             else:
                 temp_profit *= 1.01
@@ -155,7 +155,7 @@ def har_har_L_value_har_L(value, index, profit, target):
     for x in temp_value:
         temp = 0.0
         for i in range(temp_value.shape[0]):
-            if value[i] > x:
+            if temp_value[i] > x:
                 temp += 1.0/profit[i]
             else:
                 temp += 1.0/1.01
