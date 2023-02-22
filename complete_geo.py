@@ -248,7 +248,7 @@ class Complete_geo(Method):
             "value_har_limit": self.list_value_har_L,
             "value": self.list_value,
             "bitmean": self.list_bit,
-            "invest": [self.TRAINING_DATA["SYMBOL"].iloc[i] for i in self.list_invest_index],
+            "invest": [self.TRAINING_DATA["SYMBOL"].iloc[i] if i != -1 else "NI" for i in self.list_invest_index],
             "profit": self.list_invest_profit,
             "cycle": [min_time + i for i in self.list_cycle]
         })
