@@ -15,7 +15,7 @@ class Complete_geo(Method):
         super().__init__(data, path_save)
         self.test_start = test_start
         self.alpha = 0.01
-    
+
 
     def fill_operand(self, formula, struct, idx, temp_0, temp_op, temp_1, target, mode, add_sub_done, mul_div_done):
         if mode == 0: # Sinh dấu cộng trừ đầu mỗi cụm
@@ -87,7 +87,7 @@ class Complete_geo(Method):
                     for w_i in range(temp_0_new.shape[0]):
                         weight = temp_0_new[w_i]
                         values, indexes, profits = nopy.get_value_index_profit(weight, self.PROFIT, self.INDEX)
-                        
+
                         for c_i in range(self.test_start, self.INDEX.shape[0]-1):
                             value = values[0:c_i]
                             index = indexes[0:c_i]
@@ -113,7 +113,7 @@ class Complete_geo(Method):
                                 self.list_invest_profit.append(profits[c_i])
                                 self.list_cycle.append(c_i)
                                 self.count[0:3:2] += 1
-                    
+
                     self.last_formula[:] = formula[:]
                     self.last_formula[idx] = self.OPERAND.shape[0]
                     if self.count[0] >= self.count[1] or self.count[2] >= self.count[3]:
@@ -230,13 +230,13 @@ class Complete_geo(Method):
 
             if self.save_history():
                 break
-    
+
     def save_history(self):
         np.save(self.path+"history_new_many.npy", (self.last_formula, self.last_uoc_idx))
         print("Đã lưu lịch sử.")
         if self.count[0] == 0:
             return False
-        
+
         min_time = self.TRAINING_DATA["TIME"].min()
         df = pd.DataFrame({
             "formula": self.list_formula,
@@ -274,4 +274,3 @@ class Complete_geo(Method):
                     raise Exception("Đã sinh đủ công thức theo yêu cầu.")
 
                 return False
-            
