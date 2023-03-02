@@ -11,10 +11,18 @@ warnings.filterwarnings(action="ignore", category=RuntimeWarning)
 
 
 class Complete_har(Method):
-    def __init__(self, data: pd.DataFrame, path_save: str, test_start: int) -> None:
+    def __init__(self, data: pd.DataFrame, path_save: str, test_start: int, alpha: float, beta: float) -> None:
+        '''
+        test_start: index của chu kì đầu tiên thực hiện sinh công thức. Ví dụ data từ 2007 -> 2022, muốn bắt đầu sinh từ 2013 thì nhập test_start = 6
+        alpha: khi sinh công thức, har_limit - harmean >= alpha thì mới giữ lại
+        '''
         super().__init__(data, path_save)
         self.test_start = test_start
-        self.alpha = 0.01
+        self.alpha = alpha
+        if beta <= 1.0:
+            raise Exception("beta phải > 1.0.")
+        
+        self.beta = beta
 
 
     def fill_operand(self, formula, struct, idx, temp_0, temp_op, temp_1, target, mode, add_sub_done, mul_div_done):
@@ -97,11 +105,11 @@ class Complete_har(Method):
                             v_gnq_p = rank_value - rank_profit
                             v_gnq_p = v_gnq_p[v_gnq_p > 0].astype(np.float64)
                             if v_gnq_p.shape[0] > 0:
-                                geo_rank_dif = v_gnq_p[0]
+                                geo_rank_dif = self.beta**v_gnq_p[0]
                                 for i in range(1, v_gnq_p.shape[0]):
-                                    geo_rank_dif = geo_rank_dif**(1.0*i/(i+1)) * v_gnq_p[i]**(1.0/(i+1))
+                                    geo_rank_dif = geo_rank_dif**(1.0*i/(i+1)) * (self.beta**v_gnq_p[i])**(1.0/(i+1))
                             else:
-                                geo_rank_dif = 0.0
+                                geo_rank_dif = self.beta
 
                             avg_geo_rank_dif[0] += geo_rank_dif
                             avg_geo_rank_dif[1] += 1
