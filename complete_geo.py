@@ -11,10 +11,14 @@ warnings.filterwarnings(action="ignore", category=RuntimeWarning)
 
 
 class Complete_geo(Method):
-    def __init__(self, data: pd.DataFrame, path_save: str, test_start: int) -> None:
+    def __init__(self, data: pd.DataFrame, path_save: str, test_start: int, alpha: float) -> None:
+        '''
+        test_start: index của chu kì đầu tiên thực hiện sinh công thức. Ví dụ data từ 2007 -> 2022, muốn bắt đầu sinh từ 2013 thì nhập test_start = 6
+        alpha: khi sinh công thức, geo_limit - geomean >= alpha thì mới giữ lại
+        '''
         super().__init__(data, path_save)
         self.test_start = test_start
-        self.alpha = 0.01
+        self.alpha = alpha
 
 
     def fill_operand(self, formula, struct, idx, temp_0, temp_op, temp_1, target, mode, add_sub_done, mul_div_done):
