@@ -90,6 +90,8 @@ class Complete_har(Method):
 
                     for w_i in range(temp_0_new.shape[0]):
                         weight = temp_0_new[w_i]
+                        temp_formula = formula.copy()
+                        temp_formula[idx] = valid_operand[w_i]
                         values, indexes, profits = nopy.get_value_index_profit(weight, self.PROFIT, self.INDEX)
 
                         for c_i in range(self.test_start, self.INDEX.shape[0]-1):
@@ -102,8 +104,6 @@ class Complete_har(Method):
                                 temp_weight = weight[self.INDEX[-1-c_i]:self.INDEX[-1]]
                                 temp_profit = self.PROFIT[self.INDEX[-1-c_i]:self.INDEX[-1]]
                                 bit = nopy.get_bit_mean(temp_weight, temp_profit)
-                                temp_formula = formula.copy()
-                                temp_formula[idx] = valid_operand[w_i]
                                 self.list_formula.append(temp_formula)
                                 self.list_geo.append(geo)
                                 self.list_geo_L.append(geo_L)

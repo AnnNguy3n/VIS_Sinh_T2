@@ -21,7 +21,7 @@ class Complete_geo(Method):
         self.alpha = alpha
         if beta <= 1.0:
             raise Exception("beta phải > 1.0.")
-        
+
         self.beta = beta
 
 
@@ -94,6 +94,8 @@ class Complete_geo(Method):
 
                     for w_i in range(temp_0_new.shape[0]):
                         weight = temp_0_new[w_i]
+                        temp_formula = formula.copy()
+                        temp_formula[idx] = valid_operand[w_i]
                         values, indexes, profits = nopy.get_value_index_profit(weight, self.PROFIT, self.INDEX)
 
                         avg_geo_rank_dif = np.array([0.0, 0.0], dtype=np.float64)
@@ -124,8 +126,6 @@ class Complete_geo(Method):
                                     temp_weight = weight[self.INDEX[-1-c_i]:self.INDEX[-1]]
                                     temp_profit = self.PROFIT[self.INDEX[-1-c_i]:self.INDEX[-1]]
                                     bit = nopy.get_bit_mean(temp_weight, temp_profit)
-                                    temp_formula = formula.copy()
-                                    temp_formula[idx] = valid_operand[w_i]
                                     self.list_formula.append(temp_formula)
                                     self.list_geo.append(geo)
                                     self.list_geo_L.append(geo_L)
