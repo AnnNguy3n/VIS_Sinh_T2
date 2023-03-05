@@ -107,11 +107,12 @@ class Complete_har(Method):
                             v_gnq_p = rank_value - rank_profit
                             v_gnq_p = v_gnq_p[v_gnq_p > 0].astype(np.float64)
                             if v_gnq_p.shape[0] > 0:
-                                geo_rank_dif = self.beta**v_gnq_p[0]
-                                for i in range(1, v_gnq_p.shape[0]):
-                                    geo_rank_dif = geo_rank_dif**(1.0*i/(i+1)) * (self.beta**v_gnq_p[i])**(1.0/(i+1))
+                                # geo_rank_dif = self.beta**v_gnq_p[0]
+                                # for i in range(1, v_gnq_p.shape[0]):
+                                #     geo_rank_dif = geo_rank_dif**(1.0*i/(i+1)) * (self.beta**v_gnq_p[i])**(1.0/(i+1))
+                                geo_rank_dif = np.log(1+v_gnq_p.shape[0])/v_gnq_p.shape[0]*np.sum(self.beta**v_gnq_p)
                             else:
-                                geo_rank_dif = self.beta
+                                geo_rank_dif = 0.0
 
                             avg_geo_rank_dif[0] += geo_rank_dif
                             avg_geo_rank_dif[1] += 1

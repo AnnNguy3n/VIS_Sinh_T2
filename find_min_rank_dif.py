@@ -6,11 +6,29 @@ from datetime import datetime
 import nopy
 from numpy import VisibleDeprecationWarning
 import warnings
+import signal
+import logging
 warnings.filterwarnings(action="ignore", category=VisibleDeprecationWarning)
 warnings.filterwarnings(action="ignore", category=RuntimeWarning)
 
 
-class Complete_geo(Method):
+class DelayedKeyboardInterrupt:
+
+    def __enter__(self):
+        self.signal_received = False
+        self.old_handler = signal.signal(signal.SIGINT, self.handler)
+
+    def handler(self, sig, frame):
+        self.signal_received = (sig, frame)
+        logging.debug('SIGINT received. Delaying KeyboardInterrupt.')
+
+    def __exit__(self, type, value, traceback):
+        signal.signal(signal.SIGINT, self.old_handler)
+        if self.signal_received:
+            self.old_handler(*self.signal_received)
+
+
+class Find(Method):
     def __init__(self, data: pd.DataFrame, path_save: str, test_start: int, alpha: float, beta: float) -> None:
         '''
         test_start: index của chu kì đầu tiên thực hiện sinh công thức. Ví dụ data từ 2007 -> 2022, muốn bắt đầu sinh từ 2013 thì nhập test_start = 6
@@ -96,7 +114,7 @@ class Complete_geo(Method):
                         weight = temp_0_new[w_i]
                         temp_formula = formula.copy()
                         temp_formula[idx] = valid_operand[w_i]
-                        values, indexes, profits = nopy.get_value_index_profit(weight, self.PROFIT, self.INDEX)
+                        # values, indexes, profits = nopy.get_value_index_profit(weight, self.PROFIT, self.INDEX)
 
                         avg_geo_rank_dif = np.array([0.0, 0.0], dtype=np.float64)
                         for c_i in range(0, self.INDEX.shape[0]-1):
@@ -118,29 +136,34 @@ class Complete_geo(Method):
                             avg_geo_rank_dif[1] += 1
 
                             if c_i >= self.test_start:
-                                value = values[0:c_i]
-                                index = indexes[0:c_i]
-                                profit = profits[0:c_i]
-                                geo, geo_L, value_geo_L = nopy.geo_geo_L_value_geo_L(value, index, profit, target)
-                                if geo >= target and geo_L - geo >= self.alpha:
-                                    har, har_L, value_har_L = nopy.har_har_L_value_har_L(value, index, profit, 0.0)
-                                    temp_weight = weight[self.INDEX[-1-c_i]:self.INDEX[-1]]
-                                    temp_profit = self.PROFIT[self.INDEX[-1-c_i]:self.INDEX[-1]]
-                                    bit = nopy.get_bit_mean(temp_weight, temp_profit)
-                                    self.list_formula.append(temp_formula)
-                                    self.list_geo.append(geo)
-                                    self.list_geo_L.append(geo_L)
-                                    self.list_value_geo_L.append(value_geo_L)
-                                    self.list_har.append(har)
-                                    self.list_har_L.append(har_L)
-                                    self.list_value_har_L.append(value_har_L)
-                                    self.list_value.append(values[c_i])
-                                    self.list_bit.append(bit)
-                                    self.list_invest_index.append(indexes[c_i])
-                                    self.list_invest_profit.append(profits[c_i])
-                                    self.list_cycle.append(c_i)
-                                    self.list_rank_dif.append(avg_geo_rank_dif[0] / avg_geo_rank_dif[1])
-                                    self.count[0:3:2] += 1
+                                # value = values[0:c_i]
+                                # index = indexes[0:c_i]
+                                # profit = profits[0:c_i]
+                                # geo, geo_L, value_geo_L = nopy.geo_geo_L_value_geo_L(value, index, profit, target)
+                                # if geo >= target and geo_L - geo >= self.alpha:
+                                #     har, har_L, value_har_L = nopy.har_har_L_value_har_L(value, index, profit, 0.0)
+                                #     temp_weight = weight[self.INDEX[-1-c_i]:self.INDEX[-1]]
+                                #     temp_profit = self.PROFIT[self.INDEX[-1-c_i]:self.INDEX[-1]]
+                                #     bit = nopy.get_bit_mean(temp_weight, temp_profit)
+                                #     self.list_formula.append(temp_formula)
+                                #     self.list_geo.append(geo)
+                                #     self.list_geo_L.append(geo_L)
+                                #     self.list_value_geo_L.append(value_geo_L)
+                                #     self.list_har.append(har)
+                                #     self.list_har_L.append(har_L)
+                                #     self.list_value_har_L.append(value_har_L)
+                                #     self.list_value.append(values[c_i])
+                                #     self.list_bit.append(bit)
+                                #     self.list_invest_index.append(indexes[c_i])
+                                #     self.list_invest_profit.append(profits[c_i])
+                                #     self.list_cycle.append(c_i)
+                                #     self.list_rank_dif.append(avg_geo_rank_dif[0] / avg_geo_rank_dif[1])
+                                #     self.count[0:3:2] += 1
+                                value_rank_dif = avg_geo_rank_dif[0] / avg_geo_rank_dif[1]
+                                if value_rank_dif < self.array_min_rank_dif[c_i-self.test_start]:
+                                    with DelayedKeyboardInterrupt():
+                                        self.array_min_rank_dif[c_i-self.test_start] = value_rank_dif
+                                        self.list_f_min_rank_dif[c_i-self.test_start] = temp_formula
 
                     self.last_formula[:] = formula[:]
                     self.last_formula[idx] = self.OPERAND.shape[0]
@@ -209,9 +232,14 @@ class Complete_geo(Method):
     def generate_formula(self, target_profit=1.0, formula_file_size=1000000, target_num_formula=1000000000):
         try:
             temp = np.load(self.path+"history_new_many.npy", allow_pickle=True)
+            self.array_min_rank_dif = np.load(self.path+"array_min_rank_dif.npy", allow_pickle=True)
+            self.list_f_min_rank_dif = list(np.load(self.path+"list_f_min_rank_dif.npy", allow_pickle=True))
             self.history = temp
         except:
             self.history =  np.array([0, 0]), 0
+            self.array_min_rank_dif = np.zeros(self.INDEX.shape[0]-1-self.test_start)
+            self.array_min_rank_dif[:] = np.nan_to_num(np.inf)
+            self.list_f_min_rank_dif = ["" for i in range(self.INDEX.shape[0]-1-self.test_start)]
 
         self.last_formula = self.history[0].copy()
         self.last_uoc_idx = self.history[1]
@@ -223,19 +251,19 @@ class Complete_geo(Method):
         while True:
             num_operand += 1
             print("Đang chạy sinh công thức có số toán hạng là ", num_operand, ". . .")
-            self.list_formula = []
-            self.list_geo = []
-            self.list_geo_L = []
-            self.list_value_geo_L = []
-            self.list_har = []
-            self.list_har_L = []
-            self.list_value_har_L = []
-            self.list_value = []
-            self.list_bit = []
-            self.list_invest_index = []
-            self.list_invest_profit = []
-            self.list_cycle = []
-            self.list_rank_dif = []
+            # self.list_formula = []
+            # self.list_geo = []
+            # self.list_geo_L = []
+            # self.list_value_geo_L = []
+            # self.list_har = []
+            # self.list_har_L = []
+            # self.list_value_har_L = []
+            # self.list_value = []
+            # self.list_bit = []
+            # self.list_invest_index = []
+            # self.list_invest_profit = []
+            # self.list_cycle = []
+            # self.list_rank_dif = []
 
             list_uoc_so = []
             for i in range(1, num_operand+1):
@@ -263,45 +291,57 @@ class Complete_geo(Method):
     def save_history(self):
         np.save(self.path+"history_new_many.npy", (self.last_formula, self.last_uoc_idx))
         print("Đã lưu lịch sử.")
-        if self.count[0] == 0:
-            return False
+        # if self.count[0] == 0:
+        #     return False
 
         min_time = self.TRAINING_DATA["TIME"].min()
         df = pd.DataFrame({
-            "formula": self.list_formula,
-            "geomean": self.list_geo,
-            "geo_limit": self.list_geo_L,
-            "value_geo_limit": self.list_value_geo_L,
-            "harmean": self.list_har,
-            "har_limit": self.list_har_L,
-            "value_har_limit": self.list_value_har_L,
-            "value": self.list_value,
-            "bitmean": self.list_bit,
-            "invest": [self.TRAINING_DATA["SYMBOL"].iloc[i] if i != -1 else "NI" for i in self.list_invest_index],
-            "profit": self.list_invest_profit,
-            "cycle": [min_time + i for i in self.list_cycle],
-            "rank_diff": self.list_rank_dif
+            "cycle": [min_time + i + self.test_start for i in range(self.INDEX.shape[0]-1-self.test_start)],
+            "formula": self.list_f_min_rank_dif,
+            "rank_dif": self.array_min_rank_dif
         })
-        while True:
-            pathSave = self.path + f"formula_" + datetime.now().strftime("%d_%m_%Y_%H_%M_%S") + ".csv"
-            if not os.path.exists(pathSave):
-                df.to_csv(pathSave, index=False)
-                self.count[0] = 0
-                self.list_formula = []
-                self.list_geo = []
-                self.list_geo_L = []
-                self.list_value_geo_L = []
-                self.list_har = []
-                self.list_har_L = []
-                self.list_value_har_L = []
-                self.list_value = []
-                self.list_bit = []
-                self.list_invest_index = []
-                self.list_invest_profit = []
-                self.list_cycle = []
-                self.list_rank_dif = []
-                print("Đã lưu công thức")
-                if self.count[2] >= self.count[3]:
-                    raise Exception("Đã sinh đủ công thức theo yêu cầu.")
 
-                return False
+        with DelayedKeyboardInterrupt():
+            df.to_csv(self.path+"min_rank_dif.csv")
+            np.save(self.path+"array_min_rank_dif.npy", self.array_min_rank_dif)
+            np.save(self.path+"list_f_min_rank_dif.npy", self.list_f_min_rank_dif)
+        print("Đã lưu công thức")
+
+        # df = pd.DataFrame({
+        #     "formula": self.list_formula,
+        #     "geomean": self.list_geo,
+        #     "geo_limit": self.list_geo_L,
+        #     "value_geo_limit": self.list_value_geo_L,
+        #     "harmean": self.list_har,
+        #     "har_limit": self.list_har_L,
+        #     "value_har_limit": self.list_value_har_L,
+        #     "value": self.list_value,
+        #     "bitmean": self.list_bit,
+        #     "invest": [self.TRAINING_DATA["SYMBOL"].iloc[i] if i != -1 else "NI" for i in self.list_invest_index],
+        #     "profit": self.list_invest_profit,
+        #     "cycle": [min_time + i for i in self.list_cycle],
+        #     "rank_diff": self.list_rank_dif
+        # })
+        # while True:
+        #     pathSave = self.path + f"formula_" + datetime.now().strftime("%d_%m_%Y_%H_%M_%S") + ".csv"
+        #     if not os.path.exists(pathSave):
+        #         df.to_csv(pathSave, index=False)
+        #         self.count[0] = 0
+        #         self.list_formula = []
+        #         self.list_geo = []
+        #         self.list_geo_L = []
+        #         self.list_value_geo_L = []
+        #         self.list_har = []
+        #         self.list_har_L = []
+        #         self.list_value_har_L = []
+        #         self.list_value = []
+        #         self.list_bit = []
+        #         self.list_invest_index = []
+        #         self.list_invest_profit = []
+        #         self.list_cycle = []
+        #         self.list_rank_dif = []
+        #         print("Đã lưu công thức")
+        #         if self.count[2] >= self.count[3]:
+        #             raise Exception("Đã sinh đủ công thức theo yêu cầu.")
+
+        #         return False
