@@ -109,19 +109,20 @@ class Complete_har(Method):
                                 if max_ > 0.0:
                                     temp_[:] = temp_ / max_
 
-                                self.list_formula.append(temp_formula)
-                                self.list_geo.append(geo)
-                                self.list_geo_L.append(geo_L)
-                                self.list_value_geo_L.append(temp_[0])
-                                self.list_har.append(har)
-                                self.list_har_L.append(har_L)
-                                self.list_value_har_L.append(temp_[1])
-                                self.list_value.append(temp_[2])
-                                self.list_bit.append(bit)
-                                self.list_invest_index.append(indexes[c_i])
-                                self.list_invest_profit.append(profits[c_i])
-                                self.list_cycle.append(c_i)
-                                self.count[0:3:2] += 1
+                                if np.min(np.abs(temp_)) > 1e-10:
+                                    self.list_formula.append(temp_formula)
+                                    self.list_geo.append(geo)
+                                    self.list_geo_L.append(geo_L)
+                                    self.list_value_geo_L.append(temp_[0])
+                                    self.list_har.append(har)
+                                    self.list_har_L.append(har_L)
+                                    self.list_value_har_L.append(temp_[1])
+                                    self.list_value.append(temp_[2])
+                                    self.list_bit.append(bit)
+                                    self.list_invest_index.append(indexes[c_i])
+                                    self.list_invest_profit.append(profits[c_i])
+                                    self.list_cycle.append(c_i)
+                                    self.count[0:3:2] += 1
 
                     self.last_formula[:] = formula[:]
                     self.last_formula[idx] = self.OPERAND.shape[0]
